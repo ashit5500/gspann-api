@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Socket.IO Client with MongoDB</title>
+</head>
+<body>
+  <input type="text" id="username" placeholder="Username">
+  <input type="text" id="room" placeholder="Room Name">
+  <button id="join">Join Room</button>
+  <button id="leave">Leave Room</button>
+  <input type="text" id="privateMessageTo" placeholder="Send Private Message To">
+  <input type="text" id="message" placeholder="Message">
+  <button id="send">Send Message</button>
+  <button id="sendPrivate">Send Private Message</button>
+  <ul id="messages"></ul>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io('http://localhost:3000');
+    const usernameInput = document.getElementById('username');
+    const roomInput = document.getElementById('room');
+    const privateMessageToInput = document.getElementById('privateMessageTo');
+    const messageInput = document.getElementById('message');
+    const messagesList = document.getElementById('messages');
+
+    document.getElementById('join').addEventListener('click', () => {
+      const userName = usernameInput.value;
+      const roomName = roomInput.value;
+      socket.emit('joinRoom', { roomName, userName });
+    });
+
+    document.getElementById('leave').addEventListener('click', () => {
+      const roomName = roomInput.value;
+      socket.emit('leaveRoom', roomName);
+    });
+
+    document.getElementById('send').addEventListener('click', () => {
+      const roomName = roomInput.value;
+      const message = messageInput.value;
+      socket.emit('message', { roomName, message });
+    });
+
+    document.getElementById('sendPrivate').addEventListener('click', () => {
+      const toUserName = privateMessageToInput.value;
+      const message = messageInput.value;
+      socket.emit('privateMessage', { toUserName, message });
+    });
+
+    socket.on('message', (message) => {
+      const li = document.createElement('li');
+      li.textContent = message;
+      messagesList.appendChild(li);
+    });
+
+    socket.on('previousMessages', (messages) => {
+      messagesList.innerHTML = '';
+      messages.forEach((msg) => {
+        const li = document.createElement('li');
+        li.textContent = `${msg.user}: ${msg.message}`;
+        messagesList.appendChild(li);
+      });
+    });
+  </script>
+</body>
+</html>
